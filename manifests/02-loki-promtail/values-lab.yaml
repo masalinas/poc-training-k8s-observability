@@ -1,0 +1,69 @@
+# =============================================================================
+# manifests/02-loki-promtail/values-lab.yaml
+# Grafana Loki (Single Binary) + Promtail DaemonSet
+# =============================================================================
+
+# Despliegue de Loki en modo monolítico ligero para laboratorio
+loki:
+  auth_enabled: false
+  commonConfig:
+    path_prefix: /var/loki
+  storage:
+    type: filesystem
+  schemaConfig:
+    configs:
+      - from: 2024-01-01
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+  limits_config:
+    retention_period: 24h
+    reject_old_samples: true
+    reject_old_samples_max_age: 12h
+    max_query_length: 24h
+  singleBinary:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 384Mi
+    persistence:
+      enabled: false
+
+# Promtail como DaemonSet en cada nodo para leer /var/log/pods
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://loki.observability.svc:3100/loki/api/v1/push
+    positions:
+      filename: /run/promtail/positions.yaml
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+  resources:
+    requests:
+      cpu: 20m
+      memory: 48Mi
+    limits:
+      cpu: 100m
+      memory: 96Mi

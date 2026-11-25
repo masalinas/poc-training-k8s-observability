@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Document / PDF generation temporaries
+*.tmp
+*.pdf.tmp
+chrome-user-data/
+/tmp/chrome-user-data*/
+
+# Vagrant & Virtualization
+.vagrant/
+*.box
+
+# Kubernetes & Local configs / credentials
+*.kubeconfig
+kubeconfig
+*.key
+*.token
+
+# Logs
+*.log
+
+# Operating Systems & IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

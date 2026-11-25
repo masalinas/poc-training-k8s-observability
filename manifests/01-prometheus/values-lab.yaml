@@ -1,0 +1,90 @@
+# =============================================================================
+# manifests/01-prometheus/values-lab.yaml
+# Perfil optimizado para clústeres de laboratorio y formación (Bajo consumo)
+# =============================================================================
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: false
+    etcd: false
+    kubeScheduler: false
+    kubeProxy: false
+
+# Alertmanager desactivado para ahorrar memoria en el nodo de laboratorio
+alertmanager:
+  enabled: false
+
+# Grafana configurado con contraseña predefinida y datasources automáticos
+grafana:
+  enabled: true
+  adminPassword: "admin"
+  service:
+    type: NodePort
+    nodePort: 30080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.observability.svc:3100
+      access: proxy
+      isDefault: false
+      jsonData:
+        maxLines: 1000
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger-query.observability.svc:16686
+      access: proxy
+      isDefault: false
+
+# Prometheus Operator y Servidor de Métricas
+prometheus:
+  prometheusSpec:
+    # Retención reducida a 12 horas para no saturar disco
+    retention: 12h
+    scrapeInterval: "15s"
+    evaluationInterval: "15s"
+    replicas: 1
+    # Clave: permitir capturar ServiceMonitors sin requerir la etiqueta release=prometheus
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelector: {}
+    # Despliegue en memoria efímera sin requerir StorageClass externa obligatoria
+    storageSpec:
+      emptyDir: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Exportador de métricas del nodo (CPU, RAM, Disco)
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# Estado de objetos Kubernetes (Pods, Deployments, Replicas)
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
